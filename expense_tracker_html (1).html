@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💰 Gestor de Gastos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #111827;
+      color: #fff;
+      min-height: 100vh;
+      padding-bottom: 20px;
+    }
+
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab {
+      padding: 10px 16px;
+      background: #374151;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 14px;
+      transition: all 0.2s;
+      min-width: fit-content;
+    }
+
+    .tab:hover {
+      background: #4B5563;
+    }
+
+    .tab.active {
+      background: #2563EB;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: #1F2937;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #1F2937;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      opacity: 0.75;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .stat-value.green {
+      color: #10B981;
+    }
+
+    .stat-value.red {
+      color: #EF4444;
+    }
+
+    .stat-value.blue {
+      color: #3B82F6;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      background: #374151;
+      border: 1px solid #4B5563;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: #2563EB;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #1D4ED8;
+    }
+
+    button.danger {
+      background: #DC2626;
+    }
+
+    button.danger:hover {
+      background: #B91C1C;
+    }
+
+    button.success {
+      background: #059669;
+    }
+
+    button.success:hover {
+      background: #047857;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .btn-category {
+      padding: 12px;
+      background: #374151;
+      border: 1px solid #4B5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .expense-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #374151;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .expense-item .info {
+      flex: 1;
+    }
+
+    .expense-item input {
+      width: 120px;
+    }
+
+    .category-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #374151;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .category-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .color-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #374151;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+
+    .chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 8px;
+      height: 250px;
+      margin-top: 24px;
+    }
+
+    .chart-bar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bar {
+      width: 100%;
+      background: #3B82F6;
+      border-radius: 4px 4px 0 0;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .bar.over-budget {
+      background: #EF4444;
+    }
+
+    .bar-label {
+      font-size: 0.75rem;
+      opacity: 0.75;
+    }
+
+    .chat-container {
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding: 16px;
+      background: #374151;
+      border-radius: 8px;
+    }
+
+    .chat-message {
+      margin-bottom: 12px;
+      display: flex;
+    }
+
+    .chat-message.user {
+      justify-content: flex-end;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 12px;
+    }
+
+    .chat-message.user .chat-bubble {
+      background: #2563EB;
+    }
+
+    .chat-message.assistant .chat-bubble {
+      background: #1F2937;
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input-container input {
+      flex: 1;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .form-row input:first-child {
+      flex: 1;
+    }
+
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #374151;
+      border-top-color: #2563EB;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .mb-4 {
+      margin-bottom: 16px;
+    }
+
+    .text-sm {
+      font-size: 0.875rem;
+    }
+
+    .opacity-75 {
+      opacity: 0.75;
+    }
+
+    .font-semibold {
+      font-weight: 600;
+    }
+
+    .text-lg {
+      font-size: 1.125rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="app" class="container hidden">
+    <h1>💰 Gestor de Gastos</h1>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="gastos">Gastos</button>
+      <button class="tab" data-tab="categorias">Categorías</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="tab-content active">
+      <div class="mb-4">
+        <label>Año</label>
+        <select id="dashboardYear"></select>
+      </div>
+      
+      <div class="mb-4">
+        <label>Ver Mes</label>
+        <select id="dashboardMonth"></select>
+      </div>
+
+      <div class="grid-3" id="dashboardStats"></div>
+
+      <div class="card">
+        <h3>Gastos por Categoría</h3>
+        <div id="categoryBars"></div>
+      </div>
+
+      <div class="card">
+        <h3>Comparación Mensual <span id="yearLabel"></span></h3>
+        <div class="chart" id="monthlyChart"></div>
+      </div>
+    </div>
+
+    <!-- Gastos -->
+    <div id="gastos" class="tab-content">
+      <div class="mb-4">
+        <label>Año</label>
+        <select id="expenseYear"></select>
+      </div>
+      
+      <div class="mb-4">
+        <label>Mes</label>
+        <select id="expenseMonth"></select>
+      </div>
+
+      <div class="mb-4">
+        <h3>Agregar Gasto</h3>
+        <div class="btn-grid" id="categoryButtons"></div>
+      </div>
+
+      <div class="card">
+        <h3>Gastos de <span id="expenseMonthLabel"></span> <span id="expenseYearLabel"></span></h3>
+        <div id="expensesList"></div>
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #374151;">
+          <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: bold;">
+            <span>Total:</span>
+            <span id="expenseTotal" class="stat-value blue">$0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categorías -->
+    <div id="categorias" class="tab-content">
+      <div class="card">
+        <h3>Agregar Categoría</h3>
+        <div class="form-row">
+          <input type="text" id="newCategoryName" placeholder="Nombre">
+          <input type="number" id="newCategoryBudget" placeholder="Presupuesto" style="width: 200px;">
+          <button onclick="addCategory()">+ Agregar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Categorías</h3>
+        <div id="categoriesList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Estado global
+    const state = {
+      categories: [
+        { id: 1, name: 'Niñas', budget: 100000, color: '#FF6B9D' },
+        { id: 2, name: 'Osde', budget: 50000, color: '#4ECDC4' },
+        { id: 3, name: 'Seguro', budget: 30000, color: '#95E1D3' },
+        { id: 4, name: 'Patente', budget: 20000, color: '#F38181' },
+        { id: 5, name: 'Internet', budget: 15000, color: '#AA96DA' },
+        { id: 6, name: 'Celulares', budget: 10000, color: '#FCBAD3' },
+        { id: 7, name: 'Tarjeta', budget: 50000, color: '#A8D8EA' },
+        { id: 8, name: 'Municipalidad', budget: 10000, color: '#FFD93D' },
+        { id: 9, name: 'Luz', budget: 15000, color: '#6BCB77' },
+        { id: 10, name: 'Gas', budget: 5000, color: '#FD7272' },
+        { id: 11, name: 'Agua', budget: 5000, color: '#54C6EB' },
+        { id: 12, name: 'Impuestos', budget: 10000, color: '#FFB562' },
+        { id: 13, name: 'Netflix', budget: 8000, color: '#E23636' },
+        { id: 14, name: 'Disney', budget: 8000, color: '#113CCF' },
+        { id: 15, name: 'YouTube', budget: 5000, color: '#FF0000' },
+        { id: 16, name: 'Spotify', budget: 3000, color: '#1DB954' }
+      ],
+      expenses: [],
+      selectedMonth: 'Enero',
+      selectedYear: '2025',
+      editingCategory: null
+    };
+
+    const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const years = ['2024','2025','2026','2027','2028','2029','2030'];
+
+    // Inicializar
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      initTabs();
+      populateMonthSelects();
+      setTimeout(() => {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        render();
+      }, 500);
+    });
+
+    function loadData() {
+      const savedExpenses = localStorage.getItem('expenses');
+      const savedCategories = localStorage.getItem('categories');
+      if (savedExpenses) state.expenses = JSON.parse(savedExpenses);
+      if (savedCategories) state.categories = JSON.parse(savedCategories);
+    }
+
+    function saveData() {
+      localStorage.setItem('expenses', JSON.stringify(state.expenses));
+      localStorage.setItem('categories', JSON.stringify(state.categories));
+    }
+
+    function initTabs() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.tab).classList.add('active');
+          render();
+        });
+      });
+    }
+
+    function populateMonthSelects() {
+      const dashboardYear = document.getElementById('dashboardYear');
+      const dashboardMonth = document.getElementById('dashboardMonth');
+      const expenseYear = document.getElementById('expenseYear');
+      const expenseMonth = document.getElementById('expenseMonth');
+      
+      // Populate years
+      years.forEach(year => {
+        const opt1 = document.createElement('option');
+        opt1.value = year;
+        opt1.textContent = year;
+        dashboardYear.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = year;
+        opt2.textContent = year;
+        expenseYear.appendChild(opt2);
+      });
+
+      // Populate months
+      months.forEach(month => {
+        const opt1 = document.createElement('option');
+        opt1.value = month;
+        opt1.textContent = month;
+        dashboardMonth.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = month;
+        opt2.textContent = month;
+        expenseMonth.appendChild(opt2);
+      });
+
+      dashboardYear.value = state.selectedYear;
+      dashboardMonth.value = state.selectedMonth;
+      expenseYear.value = state.selectedYear;
+      expenseMonth.value = state.selectedMonth;
+
+      dashboardYear.addEventListener('change', (e) => {
+        state.selectedYear = e.target.value;
+        render();
+      });
+
+      dashboardMonth.addEventListener('change', (e) => {
+        state.selectedMonth = e.target.value;
+        render();
+      });
+
+      expenseYear.addEventListener('change', (e) => {
+        state.selectedYear = e.target.value;
+        render();
+      });
+
+      expenseMonth.addEventListener('change', (e) => {
+        state.selectedMonth = e.target.value;
+        render();
+      });
+    }
+
+    function getFilteredExpenses(month, year) {
+      return state.expenses.filter(exp => exp.month === month && exp.year === year);
+    }
+
+    function calculateMonthTotal(month, year) {
+      return getFilteredExpenses(month, year).reduce((sum, exp) => sum + exp.amount, 0);
+    }
+
+    function calculateTotalBudget() {
+      return state.categories.reduce((sum, cat) => sum + cat.budget, 0);
+    }
+
+    function addExpense(category) {
+      state.expenses.push({
+        id: Date.now(),
+        category: category.name,
+        month: state.selectedMonth,
+        year: state.selectedYear,
+        amount: 0,
+        budget: category.budget
+      });
+      saveData();
+      render();
+    }
+
+    function updateExpenseAmount(id, amount) {
+      const expense = state.expenses.find(exp => exp.id === id);
+      if (expense) {
+        expense.amount = parseFloat(amount) || 0;
+        saveData();
+        render();
+      }
+    }
+
+    function deleteExpense(id) {
+      state.expenses = state.expenses.filter(exp => exp.id !== id);
+      saveData();
+      render();
+    }
+
+    function addCategory() {
+      const name = document.getElementById('newCategoryName').value.trim();
+      const budget = parseFloat(document.getElementById('newCategoryBudget').value) || 0;
+      
+      if (name && budget) {
+        const colors = ['#FF6B9D', '#4ECDC4', '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3'];
+        state.categories.push({
+          id: Date.now(),
+          name,
+          budget,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+        document.getElementById('newCategoryName').value = '';
+        document.getElementById('newCategoryBudget').value = '';
+        saveData();
+        render();
+      }
+    }
+
+    function deleteCategory(id) {
+      const category = state.categories.find(cat => cat.id === id);
+      state.categories = state.categories.filter(cat => cat.id !== id);
+      state.expenses = state.expenses.filter(exp => exp.category !== category?.name);
+      saveData();
+      render();
+    }
+
+    function startEditCategory(id, budget) {
+      state.editingCategory = id;
+      render();
+      document.getElementById(`editBudget${id}`).focus();
+    }
+
+    function saveEditCategory(id) {
+      const newBudget = parseFloat(document.getElementById(`editBudget${id}`).value) || 0;
+      const category = state.categories.find(cat => cat.id === id);
+      if (category) {
+        category.budget = newBudget;
+        state.editingCategory = null;
+        saveData();
+        render();
+      }
+    }
+
+    function cancelEdit() {
+      state.editingCategory = null;
+      render();
+    }
+
+    async function askAI() {
+      const input = document.getElementById('chatInput');
+      const question = input.value.trim();
+      if (!question) return;
+
+      state.chatMessages.push({ role: 'user', content: question });
+      input.value = '';
+      renderChat();
+
+      try {
+        const yearlyAnalysis = {};
+        months.forEach(month => {
+          const totalSpent = calculateMonthTotal(month, state.selectedYear);
+          const totalBudget = calculateTotalBudget();
+          yearlyAnalysis[month] = { totalBudget, totalSpent, difference: totalBudget - totalSpent };
+        });
+
+        const expenseData = {
+          year: state.selectedYear,
+          categories: state.categories.map(cat => ({ name: cat.name, budget: cat.budget })),
+          expenses: state.expenses.filter(exp => exp.year === state.selectedYear),
+          yearlyAnalysis: yearlyAnalysis,
+          totalBudget: calculateTotalBudget()
+        };
+
+        const systemPrompt = `Eres un asistente financiero experto. Datos del año ${state.selectedYear}: ${JSON.stringify(expenseData)}. Responde en español.`;
+
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            system: systemPrompt,
+            messages: state.chatMessages.map(msg => ({ role: msg.role, content: msg.content }))
+          })
+        });
+
+        const data = await response.json();
+        const aiResponse = data.content?.find(item => item.type === 'text')?.text || 'Error al procesar.';
+        
+        state.chatMessages.push({ role: 'assistant', content: aiResponse });
+      } catch (error) {
+        state.chatMessages.push({ role: 'assistant', content: 'Hubo un error. Intenta de nuevo.' });
+      }
+      
+      renderChat();
+    }
+
+    function renderChat() {
+      const container = document.getElementById('chatMessages');
+      if (state.chatMessages.length === 0) {
+        container.innerHTML = '<p style="text-align: center; opacity: 0.5; margin-top: 100px;">Pregúntame sobre tus gastos</p>';
+        return;
+      }
+
+      container.innerHTML = state.chatMessages.map(msg => `
+        <div class="chat-message ${msg.role}">
+          <div class="chat-bubble">${msg.content}</div>
+        </div>
+      `).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function render() {
+      renderDashboard();
+      renderExpenses();
+      renderCategories();
+    }
+
+    function renderDashboard() {
+      const currentExpenses = getFilteredExpenses(state.selectedMonth, state.selectedYear);
+      const totalSpent = calculateMonthTotal(state.selectedMonth, state.selectedYear);
+      const totalBudget = calculateTotalBudget();
+      const difference = totalBudget - totalSpent;
+
+      document.getElementById('yearLabel').textContent = state.selectedYear;
+
+      // Stats
+      document.getElementById('dashboardStats').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label">Presupuesto</div>
+          <div class="stat-value blue">$${totalBudget.toLocaleString()}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Gastado</div>
+          <div class="stat-value red">$${totalSpent.toLocaleString()}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">${difference >= 0 ? 'Ahorro' : 'Sobregasto'}</div>
+          <div class="stat-value ${difference >= 0 ? 'green' : 'red'}">$${Math.abs(difference).toLocaleString()}</div>
+        </div>
+      `;
+
+      // Category bars
+      const categoryAnalysis = state.categories.map(cat => {
+        const expense = currentExpenses.find(exp => exp.category === cat.name);
+        const spent = expense ? expense.amount : 0;
+        const percentage = cat.budget > 0 ? ((spent / cat.budget) * 100).toFixed(1) : 0;
+        return { ...cat, spent, percentage };
+      }).filter(cat => cat.spent > 0).sort((a, b) => b.spent - a.spent);
+
+      document.getElementById('categoryBars').innerHTML = categoryAnalysis.map(cat => `
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span class="font-semibold">${cat.name}</span>
+            <span class="text-sm">$${cat.spent.toLocaleString()} / $${cat.budget.toLocaleString()}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${Math.min(cat.percentage, 100)}%; background: ${cat.color};"></div>
+          </div>
+          <div class="text-sm opacity-75" style="text-align: right;">${cat.percentage}%</div>
+        </div>
+      `).join('');
+
+      // Monthly chart
+      const monthlyData = months.map(month => {
+        const spent = calculateMonthTotal(month, state.selectedYear);
+        const budget = totalBudget;
+        return { month, spent, budget };
+      });
+
+      const maxSpent = Math.max(...monthlyData.map(d => d.spent), 1);
+
+      document.getElementById('monthlyChart').innerHTML = monthlyData.map(data => {
+        const height = (data.spent / maxSpent) * 100;
+        const overBudget = data.spent > data.budget;
+        return `
+          <div class="chart-bar">
+            <div class="bar ${overBudget ? 'over-budget' : ''}" 
+                 style="height: ${height}%;" 
+                 title="${data.month}: $${data.spent.toLocaleString()}">
+            </div>
+            <div class="bar-label">${data.month.substring(0, 3)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderExpenses() {
+      const currentExpenses = getFilteredExpenses(state.selectedMonth, state.selectedYear);
+      
+      document.getElementById('expenseMonthLabel').textContent = state.selectedMonth;
+      document.getElementById('expenseYearLabel').textContent = state.selectedYear;
+
+      // Category buttons
+      document.getElementById('categoryButtons').innerHTML = state.categories.map(cat => `
+        <button class="btn-category" onclick="addExpense(${JSON.stringify(cat).replace(/"/g, '&quot;')})">
+          + ${cat.name}
+        </button>
+      `).join('');
+
+      // Expenses list
+      if (currentExpenses.length === 0) {
+        document.getElementById('expensesList').innerHTML = '<p style="text-align: center; opacity: 0.5; padding: 32px 0;">No hay gastos registrados</p>';
+      } else {
+        document.getElementById('expensesList').innerHTML = currentExpenses.map(exp => `
+          <div class="expense-item">
+            <div class="info">
+              <div class="font-semibold">${exp.category}</div>
+              <div class="text-sm opacity-75">Presupuesto: $${exp.budget.toLocaleString()}</div>
+            </div>
+            <input type="number" value="${exp.amount || ''}" 
+                   onchange="updateExpenseAmount(${exp.id}, this.value)" 
+                   placeholder="Monto">
+            <button class="danger" onclick="deleteExpense(${exp.id})">🗑️</button>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('expenseTotal').textContent = '$' + calculateMonthTotal(state.selectedMonth, state.selectedYear).toLocaleString();
+    }
+
+    function renderCategories() {
+      document.getElementById('categoriesList').innerHTML = state.categories.map(cat => `
+        <div class="category-item">
+          <div class="category-left">
+            <div class="color-dot" style="background: ${cat.color};"></div>
+            <div style="flex: 1;">
+              <div class="font-semibold text-lg">${cat.name}</div>
+              ${state.editingCategory === cat.id ? `
+                <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                  <input type="number" id="editBudget${cat.id}" value="${cat.budget}" style="width: 150px;">
+                  <button class="success" onclick="saveEditCategory(${cat.id})">Guardar</button>
+                  <button onclick="cancelEdit()">Cancelar</button>
+                </div>
+              ` : `
+                <div class="text-sm opacity-75">$${cat.budget.toLocaleString()}</div>
+              `}
+            </div>
+          </div>
+          <div class="category-actions">
+            ${state.editingCategory !== cat.id ? `
+              <button onclick="startEditCategory(${cat.id}, ${cat.budget})">✏️</button>
+            ` : ''}
+            <button class="danger" onclick="deleteCategory(${cat.id})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+  </script>
+</body>
+</html>
